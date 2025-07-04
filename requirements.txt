@@ -1,0 +1,28 @@
+# API 통합
+anthropic>=0.25.0
+openai>=1.12.0
+google-generativeai>=0.3.0
+requests>=2.31.0
+python-dotenv>=1.0.0
+
+# 데이터 처리 및 분석
+pandas>=2.0.0
+numpy>=1.24.0
+
+# 텍스트 품질 분석
+textstat>=0.7.3
+
+# CLI 도구
+click>=8.1.0
+rich>=13.0.0
+
+# 테스트
+pytest>=7.4.0
+pytest-asyncio>=0.21.0
+
+# 시간 측정 및 유틸리티
+python-dateutil>=2.8.2
+
+# 설정 관리
+pydantic>=2.0.0
+pydantic-settings>=2.0.0 
