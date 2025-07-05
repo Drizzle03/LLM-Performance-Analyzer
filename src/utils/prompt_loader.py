@@ -89,27 +89,21 @@ class PromptLoader:
             filename = "question_generation_simple.txt" if simple else "question_generation.txt"
             return self.load_prompt(filename, user_response=user_response, context=context)
     
-    def get_report_prompt(self, conversation_history: list, prompt: str) -> str:
+    def get_report_prompt(self, user_response: str, context: str = "") -> str:
         """
         보고서 생성 프롬프트 가져오기
         
         Args:
-            conversation_history: 대화 기록 리스트
-            prompt: 보고서 생성 요구사항
+            user_response: 사용자의 응답
+            context: 이전 대화 맥락
             
         Returns:
             str: 보고서 생성 프롬프트
         """
-        # 대화 기록을 텍스트로 변환
-        conversation_text = "\n".join([
-            f"{'사용자' if msg.get('role') == 'user' else 'AI'}: {msg.get('content', '')}"
-            for msg in conversation_history
-        ])
-        
         return self.load_prompt(
             "report_generation.txt",
-            conversation_text=conversation_text,
-            prompt=prompt
+            user_response=user_response,
+            context=context
         )
     
     def list_prompts(self) -> list:

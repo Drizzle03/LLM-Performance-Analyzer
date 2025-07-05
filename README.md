@@ -1,390 +1,250 @@
-# 🚀 TIO Prompt Test - AI API 성능 비교 도구
+# 📊 START 기법 테스트 도구
 
-[![Python](https://img.shields.io/badge/Python-3.8+-blue.svg)](https://python.org)
-[![License](https://img.shields.io/badge/License-MIT-green.svg)](LICENSE)
-[![Status](https://img.shields.io/badge/Status-Active-brightgreen.svg)]()
+**START 기법**을 활용한 자기소개서 작성 및 면접 준비를 위한 AI 모델 성능 비교 도구입니다.
 
-## 📋 프로젝트 개요
+## 🚀 주요 기능
 
-**6개 주요 AI 모델의 성능을 종합 비교**하는 전문 도구입니다. 질문 생성과 보고서 작성 능력을 **품질, 속도, 비용** 측면에서 정량적으로 평가합니다.
-
-### 🎯 특화 기능
-- **START 기법 기반 보고서 생성**: 취업준비생을 위한 자기소개서 작성 지원
-- **실시간 성능 모니터링**: 응답시간, 토큰 사용량, 비용 실시간 측정
-- **다국어 테스트 지원**: 한국어 특화 + 영어 테스트 시나리오
+- **START 질문 생성**: 경험을 START 기법으로 구체화하는 질문들을 생성
+- **보고서 작성**: 경험을 START 기법에 따라 체계적으로 정리하고 핵심 역량 도출
+- **AI 모델 비교**: 6개 주요 AI 모델의 성능 및 응답 내용 비교
+- **마크다운 보고서**: 결과를 마크다운 파일로 자동 저장
 
 ## 🤖 지원 AI 모델
 
-| 모델 | 제공사 | 모델명 | 입력 토큰 가격 | 출력 토큰 가격 | 특징 |
-|------|--------|--------|----------------|----------------|------|
-| **Claude** | Anthropic | `claude-3-5-sonnet-20241022` | $3.0/1M | $15.0/1M | 균형잡힌 성능, 빠른 속도 |
-| **Claude Haiku** | Anthropic | `claude-3-5-haiku-20241022` | **$1.0/1M** | **$5.0/1M** | **초고속**, **경제적**, 간결한 답변 |
-| **ChatGPT** | OpenAI | `gpt-4o` | $5.0/1M | $15.0/1M | 실용적 접근, 구체적 수치 |
-| **Gemini** | Google | `gemini-1.5-pro` | $1.25/1M | $5.0/1M | 무료 티어 제공 |
-| **Grok** | xAI | `grok-3` | $3.0/1M | $3.0/1M | 상세한 전문 분석 |
-| **HyperClovaX** | Naver | `HyperCLOVA X` | $3.64/1M | $3.64/1M | 한국어 특화, 높은 가성비 |
+### 1. Claude (Anthropic)
+- **모델**: `claude-3-5-sonnet-20241022`
+- **가격**: $3/1M 입력 토큰, $15/1M 출력 토큰
+- **특징**: 고품질 응답, 긴 컨텍스트 처리 우수
 
-> *추정값. 실제 테스트에서는 더 저렴한 것으로 확인됨
+### 2. Claude Haiku (Anthropic)
+- **모델**: `claude-3-5-haiku-20241022`
+- **가격**: $1/1M 입력 토큰, $5/1M 출력 토큰
+- **특징**: 빠른 응답, 경제적 비용, 간결한 답변
 
-## 📊 실제 성능 비교 결과
+### 3. ChatGPT (OpenAI)
+- **모델**: `gpt-4o` (기본값)
+- **가격**: $5/1M 입력 토큰, $15/1M 출력 토큰
+- **특징**: 균형 잡힌 성능, 빠른 처리 속도
 
-### 🏆 START 기법 보고서 생성 (최신 테스트)
+### 4. Gemini (Google)
+- **모델**: `gemini-1.5-pro` (기본값)
+- **가격**: $3.5/1M 입력 토큰, $10.5/1M 출력 토큰
+- **특징**: 고품질 응답, 대화형 상호작용 우수
 
-| 순위 | 모델 | 품질 점수 | 응답 시간 | 비용 | 특징 |
-|------|------|-----------|----------|------|------|
-| 🥇 | **Grok** | **4.10/5.0** | 29.13초 | $0.0279 | 가장 상세하고 전문적 |
-| 🥈 | **HyperClovaX** | 3.95/5.0 | 20.20초 | **$0.0039** | 압도적 가성비 |
-| 🥉 | **Claude** | 3.89/5.0 | **17.97초** | $0.0197 | 가장 빠른 응답 |
+### 5. Grok (xAI)
+- **모델**: `grok-3` (기본값)
+- **가격**: $3/1M 입력 토큰, $15/1M 출력 토큰
+- **특징**: 창의적 응답, 유머러스한 표현
 
-### 💡 모델별 추천 용도
+### 6. HyperClovaX (Naver)
+- **모델**: `HCX-003`
+- **가격**: $2/1M 입력 토큰, $10/1M 출력 토큰 (추정)
+- **특징**: 한국어 특화, 자연스러운 한국어 처리
 
-- **🎯 실제 자기소개서 작성**: ChatGPT (실용적, 바로 사용 가능)
-- **📚 면접 준비용 심화 자료**: Grok (가장 상세한 분석)
-- **⚡ 초고속 대량 처리**: Claude Haiku (가장 빠르고 경제적)
-- **💰 경제적 초안 작성**: HyperClovaX (한국어 특화 + 가성비)
-- **⚖️ 균형잡힌 활용**: Claude (빠른 속도 + 적당한 분량)
+> **💡 참고**: 한국어 토큰은 조사, 어미, 종성 등으로 인해 영어 대비 약 3배 정도 토큰을 사용합니다.
+
+## 📋 START 기법이란?
+
+**START 기법**은 경험을 구조화하여 면접과 자기소개서에서 효과적으로 어필하는 방법입니다.
+
+- **S (Situation)**: 상황 및 배경
+- **T (Task)**: 과제 및 목표
+- **A (Action)**: 실행한 행동
+- **R (Result)**: 달성한 결과
+- **T (Takeaway)**: 배운 교훈
 
 ## 🛠️ 설치 및 설정
 
-### 1️⃣ 환경 준비
-
+### 1. 프로젝트 클론
 ```bash
-# 프로젝트 클론
-git clone <repository-url>
+git clone https://github.com/yourusername/TIO_Prompt_Test.git
 cd TIO_Prompt_Test
+```
 
-# Python 가상환경 생성 (권장)
-python -m venv venv
-
-# Windows
-venv\Scripts\activate
-
-# macOS/Linux  
-source venv/bin/activate
-
-# 패키지 설치
+### 2. 의존성 설치
+```bash
 pip install -r requirements.txt
 ```
 
-### 2️⃣ API 키 설정
+### 3. 환경 설정
+`.env` 파일을 생성하고 API 키들을 설정하세요:
 
-```bash
-# 환경 파일 생성
-cp env.example .env  # macOS/Linux
-copy env.example .env  # Windows
-```
-
-**.env 파일 편집:**
 ```env
 # Claude API (필수)
-ANTHROPIC_API_KEY=sk-ant-api03-your-key-here
+ANTHROPIC_API_KEY=your_anthropic_api_key
 
-# OpenAI API (선택)
-OPENAI_API_KEY=sk-your-openai-key-here
+# OpenAI API (필수)
+OPENAI_API_KEY=your_openai_api_key
+
+# Google Gemini API (선택)
+GOOGLE_API_KEY=your_google_api_key
+
+# xAI Grok API (선택)
+XAI_API_KEY=your_xai_api_key
+
+# Naver HyperClovaX API (선택)
+HYPERCLOVA_API_KEY=your_hyperclova_api_key
+HYPERCLOVA_REQUEST_ID=your_request_id
+
+# 모델 설정 (선택 - 기본값 사용 권장)
 OPENAI_MODEL=gpt-4o
-
-# Google AI API (선택)
-GOOGLE_API_KEY=your-google-ai-key-here
 GEMINI_MODEL=gemini-1.5-pro
-
-# xAI API (선택)
-GROK_API_KEY=your-grok-key-here
 GROK_MODEL=grok-3
-
-# HyperClovaX API (필수)
-HYPERCLOVA_API_KEY=your-hyperclova-key-here
-HYPERCLOVA_API_GATEWAY_URL=https://clovastudio.stream.ntruss.com
-
-# 기타 설정
-TEST_LANGUAGE=ko
-REQUEST_TIMEOUT=60
 ```
 
-### 3️⃣ 설정 확인
+> **참고**: 모든 API 키가 필요하지 않습니다. 사용 가능한 API만 활용됩니다.
+
+## 📖 사용 방법
+
+### 1. START 질문 생성
+경험을 START 기법으로 구체화하는 질문들을 생성합니다.
 
 ```bash
-python main.py info
+python -m src.cli.main questions
 ```
 
-**예상 출력:**
-```
-🔧 시스템 정보
-- 테스트 언어: ko
-- 최대 재시도: 3
-- 요청 타임아웃: 60초
+**결과:**
+- 터미널에 성능 비교 및 응답 내용 출력
+- `reports/START_questions_YYYYMMDD_HHMMSS.md` 파일 자동 저장
 
-🔑 API 키 상태 확인:
-  ✅ Claude API: 설정됨
-  ✅ Claude Haiku API: 설정됨
-  ✅ OpenAI API (ChatGPT): 설정됨
-  ✅ Google AI (Gemini): 설정됨
-  ✅ xAI (Grok): 설정됨
-  ✅ HyperClovaX API: 설정됨
-
-🎯 사용 가능한 API: claude, claude-haiku, openai, gemini, grok, hyperclova (6개)
-```
-
-## 🚀 사용법
-
-### 📝 질문 생성 테스트
+### 2. 보고서 작성
+경험을 START 기법에 따라 체계적으로 정리하고 핵심 역량을 도출합니다.
 
 ```bash
-# 기본 테스트 (3개 시나리오)
-python main.py test
-
-# 특정 카테고리 테스트
-python main.py test --category start_technique --count 1
-
-# 대량 테스트
-python main.py test --category all --count 10
+python -m src.cli.main reports
 ```
 
-### 📋 보고서 생성 테스트 (START 기법)
+**결과:**
+- 터미널에 성능 비교 및 응답 내용 출력
+- `reports/START_report_YYYYMMDD_HHMMSS.md` 파일 자동 저장
 
-```bash
-# START 기법 보고서 생성
-python main.py report --category start_technique_report --count 1
+## 📊 보고서 예시
 
-# 다양한 보고서 타입 테스트
-python main.py report --category all --count 3
-```
+### 성능 비교 테이블
+| 모델 | 평균 응답시간 (초) | 평균 비용 ($) | 평균 토큰 수 |
+|------|------------------|-------------|-------------|
+| Claude | 8.98 | $0.0117 | 1596 |
+| Claude Haiku | 10.06 | $0.0039 | 1598 |
+| ChatGPT | 5.80 | $0.0081 | 952 |
+| Gemini | 9.21 | $0.0092 | 1374 |
+| Grok | 11.98 | $0.0105 | 1188 |
+| HyperClovaX | 8.70 | $0.0050 | 1098 |
 
-### 📊 카테고리 확인
+### 응답 내용 비교
+각 AI 모델의 완전한 응답 내용을 비교하여 최적의 결과를 선택할 수 있습니다.
 
-```bash
-# 사용 가능한 카테고리 목록
-python main.py categories
+## 🔧 고급 기능
 
-# 모든 시나리오 목록
-python main.py scenarios
-```
-
-## 🎯 START 기법 특화 기능
-
-### 📚 START 기법이란?
-**S**ituation - **T**ask - **A**ction - **R**esult - **T**akeaway
-
-취업준비생의 모호한 경험을 **구체적이고 매력적인 스토리**로 변환하는 기법
-
-### 💡 프롬프트 구조
-
-각 항목별로 다음 3가지를 제공:
-1. **🔍 꼬리질문**: 구체적인 정보를 이끌어내는 질문
-2. **📋 실무 예시**: 프로젝트에서 있을법한 구체적인 상황/수치
-3. **⭐ 기업 어필 포인트**: 자기소개서에서 강조하면 좋은 표현/키워드
-
-### 📖 실제 결과 예시
-
-**입력 (모호한 경험):**
-> "작년 여름에 스타트업에서 마케팅 인턴을 했어요. 메타 광고 집행을 맡았는데 처음엔 결과가 안 좋았어요..."
-
-**출력 (Grok 모델):**
-```markdown
-## S (Situation) - 상황
-🔍 **꼬리질문**: "스타트업에서의 마케팅 인턴십은 어떤 팀이나 프로젝트에 속했으며, 당시 회사의 주된 목표는 무엇이었나요?"
-📋 **실무 예시**: "D2C 뷰티 스타트업(직원 30명 규모)에서 3개월간 마케팅팀 인턴으로 근무했습니다. 신제품 런칭을 앞두고 페이스북/인스타그램 광고 성과 개선이 시급한 상황이었으며, 월 광고 예산 2,000만원 규모의 캠페인을 담당했습니다."
-⭐ **기업 어필**: 스타트업 환경에서의 빠른 적응력, 실무 중심 업무 경험, 예산 관리 책임감
-
-## 핵심 역량 키워드
-1. **데이터 기반 의사결정**: 구글 애널리틱스(GA)를 활용한 이탈률 분석 및 광고 성과 개선
-2. **문제 해결 능력**: 낮은 CTR과 높은 이탈률 문제를 인식하고 해결책을 모색한 태도
-3. **실험적 접근**: A/B 테스트를 통해 광고 소재를 최적화한 실험 정신
-4. **협업 능력**: 디자이너와의 협력을 통해 랜딩페이지 개선에 기여
-5. **결과 중심적 태도**: 지속적인 테스트와 수정으로 성과를 향상시킨 노력
-```
-
-## 📈 성능 평가 시스템
-
-### 📊 품질 메트릭 (QualityMetrics)
-
-| 항목 | 설명 | 계산 방식 |
-|------|------|-----------|
-| **관련성 점수** | 원문과의 연관성 | 키워드 겹침 분석 (1 + overlap_ratio × 4) |
-| **명확성 점수** | 응답의 명확함 | 질문 개수, 물음표 사용률 기반 |
-| **구조 점수** | 체계적 구성 | 번호 매기기, 섹션 구성 평가 |
-| **가독성 점수** | 읽기 쉬움 | Flesch-Kincaid Grade Level |
-| **종합 점수** | 전체 품질 | (관련성 + 명확성 + 구조) / 3 |
-
-### ⚡ 성능 메트릭 (PerformanceMetrics)
-
-- **응답 시간**: API 호출부터 응답까지의 시간
-- **토큰 사용량**: 입력 + 출력 토큰 총량
-- **비용**: 실제 사용 비용 (USD)
-- **성공률**: 오류 없이 완료된 비율
-
-### 🏆 종합 랭킹 점수
-
-**품질 × 0.6 + 속도 × 0.2 + 비용효율성 × 0.2**
-
-## ⚠️ 중요 고려사항
-
-### 💰 토큰 계산 방식 차이
-
-| 모델 | 토큰 계산 방식 | 정확도 | 비용 신뢰성 |
-|------|---------------|--------|------------|
-| **Claude, ChatGPT, Grok** | API 제공 (정확) | ✅ 100% | ✅ 신뢰 |
-| **Gemini, HyperClovaX** | 단어×1.3 (추정) | ❌ 60-80% | ⚠️ 불정확 |
-
-> **주의**: HyperClovaX와 Gemini의 비용은 **추정값**이며, 실제 사용 시 차이가 있을 수 있습니다.
-
-### 🚫 제한사항
-
-- **Gemini**: 무료 티어 할당량 제한으로 간헐적 오류 발생
-- **Grok**: 높은 지연시간으로 타임아웃 발생 가능
-- **HyperClovaX**: Bearer 토큰 방식 인증 필요
-
-## 🔧 고급 사용법
-
-### 🎛️ 환경변수 설정
-
-```bash
-# 모델 변경
-export OPENAI_MODEL=gpt-4o-mini  # 비용 절약
-export GEMINI_MODEL=gemini-1.5-flash  # 고속 처리
-
-# 성능 조정
-export REQUEST_TIMEOUT=120  # 타임아웃 연장
-export MAX_RETRIES=5  # 재시도 증가
-```
-
-### 📁 결과 파일 구조
-
-```json
-{
-  "test_id": "report_test_1",
-  "timestamp": "2025-07-05T00:13:06.204954",
-  "api_provider": "Claude",
-  "task_type": "report_generation",
-  "input_text": "원본 사용자 입력...",
-  "output_text": "생성된 보고서 내용...",
-  "quality_metrics": {
-    "relevance_score": 1.68,
-    "clarity_score": 5.0,
-    "structure_score": 5.0,
-    "overall_score": 3.89
-  },
-  "performance_metrics": {
-    "response_time": 17.97,
-    "tokens_used": 1990,
-    "cost": 0.019722,
-    "success_rate": 100.0
-  }
-}
-```
-
-## 🚀 최적화 팁
-
-### 💸 비용 최적화
-
-```bash
-# 가장 경제적인 모델 사용
-# Claude Haiku: $1.0/$5.0 per 1M tokens (가장 빠름)
-# GPT-4o Mini: $0.15/$0.6 per 1M tokens (가장 저렴)
-export OPENAI_MODEL=gpt-4o-mini
-export GEMINI_MODEL=gemini-1.5-flash  # $0.075/$0.3 per 1M tokens
-
-# 대량 처리시 Claude Haiku 추천 (속도 + 경제성)
-python main.py test --category start_technique_report
-
-# 한국어 특화: HyperClovaX 우선 사용
-python main.py test --category start_technique_report --count 5
-```
-
-### ⚡ 성능 최적화
-
-- **병렬 API 호출**: 여러 모델 동시 테스트
-- **실패 API 스킵**: 전체 테스트 중단 방지
-- **타임아웃 설정**: 무한 대기 방지
-
-## 🎯 TIO 서비스 연관성
-
-이 도구는 **TIO 랜딩페이지** 서비스의 핵심 기능을 검증합니다:
-
-- **서비스**: 자기소개서 작성 전 경험 정리 지원
-- **목표**: "질문만 답하면 경험 정리 끝"
-- **결과**: "자소서에 바로 쓸 수 있는 리포트 생성"
-
-### 📋 PRD 연관 기능
-
-1. **대화 체험**: AI와의 질문-답변을 통한 경험 발굴
-2. **경험 구조화**: START 기법 기반 체계적 정리
-3. **강점 도출**: 핵심 역량 키워드 자동 추출
-4. **자소서 연결**: 완성된 리포트의 자기소개서 활용
-
-## 🤝 기여하기
-
-1. Fork the repository
-2. Create your feature branch (`git checkout -b feature/AmazingFeature`)
-3. Commit your changes (`git commit -m 'Add some AmazingFeature'`)
-4. Push to the branch (`git push origin feature/AmazingFeature`)
-5. Open a Pull Request
-
-## 📄 라이선스
-
-이 프로젝트는 MIT 라이선스를 따릅니다. 자세한 내용은 [LICENSE](LICENSE) 파일을 참조하세요.
-
-## 📞 지원
-
-- **Issues**: [GitHub Issues](https://github.com/your-repo/issues)
-- **문서**: 이 README 파일
-- **예제**: `src/tests/test_scenarios.py` 참조
-
----
-
-<<<<<<< HEAD
-> 💡 **팁**: 각 AI 모델의 특성을 이해하고 용도에 맞게 선택하면 최적의 결과를 얻을 수 있습니다! 
-=======
-> 💡 **팁**: 각 AI 모델의 특성을 이해하고 용도에 맞게 선택하면 최적의 결과를 얻을 수 있습니다!
-
----
-
-## 🎯 프롬프트 관리 시스템 (신규)
-
-### 📁 프롬프트 템플릿 구조
-
-프롬프트를 외부 파일로 분리하여 관리의 편의성과 유지보수성을 향상시켰습니다.
+### 프롬프트 관리 시스템
+프롬프트는 `src/prompts/` 폴더에서 중앙 관리됩니다:
 
 ```
 src/prompts/
-├── question_generation.txt         # 일반 질문 생성 프롬프트
-├── question_generation_simple.txt  # 간단한 질문 생성 (Haiku용)
-├── question_generation_start.txt   # START 기법 질문 생성
+├── question_generation.txt              # 일반 질문 생성
+├── question_generation_simple.txt       # 간단한 질문 생성 (Haiku용)
+├── question_generation_start.txt        # START 기법 질문 생성
 ├── question_generation_start_simple.txt # 간단한 START 질문
-└── report_generation.txt           # 보고서 생성 프롬프트
+└── report_generation.txt                # 보고서 생성
 ```
 
-### 🔧 프롬프트 로더 기능
+### 테스트 시나리오
+현재 **마케팅 인턴 경험** 시나리오를 기반으로 테스트가 진행됩니다. 
+`src/cli/main.py`에서 시나리오를 수정할 수 있습니다.
 
-**주요 기능:**
-- 📋 프롬프트 파일 자동 로드 및 캐시
-- 🔄 변수 치환 (user_response, context, language 등)
-- 🎯 모델별 최적화된 프롬프트 선택
-- 🚀 성능 향상을 위한 메모리 캐시
+## 📁 프로젝트 구조
 
-**사용법:**
-```python
-from src.utils.prompt_loader import prompt_loader
-
-# 일반 질문 생성
-prompt = prompt_loader.get_question_prompt(
-    user_response="마케팅 인턴 경험",
-    context="",
-    use_start=False,
-    simple=False
-)
-
-# START 기법 보고서 생성
-report = prompt_loader.get_report_prompt(
-    conversation_history=history,
-    prompt="자기소개서 작성"
-)
+```
+TIO_Prompt_Test/
+├── src/
+│   ├── api/                    # AI API 클래스들
+│   ├── cli/                    # CLI 도구
+│   ├── prompts/                # 프롬프트 템플릿
+│   ├── utils/                  # 유틸리티 함수
+│   └── config/                 # 설정 파일
+├── reports/                    # 생성된 보고서
+├── requirements.txt            # 의존성 목록
+├── .env                       # 환경 변수 (생성 필요)
+└── README.md                  # 이 문서
 ```
 
-### ✨ 개선사항
+## 🎯 활용 예시
 
-1. **프롬프트 중앙 관리**: 모든 프롬프트를 한 곳에서 관리
-2. **버전 관리 용이**: 프롬프트 변경사항 추적 가능
-3. **모델별 최적화**: 각 AI 모델 특성에 맞는 프롬프트 제공
-4. **유지보수성 향상**: 코드와 프롬프트 분리로 수정 편의성 증대
-5. **재사용성 극대화**: 공통 프롬프트 템플릿 활용 
->>>>>>> ab0c359 (feat: 프롬프트 관리 시스템 구축 완료)
+### 1. 취업 준비생
+- 다양한 경험을 START 기법으로 구조화
+- 각 AI 모델의 관점을 비교하여 최적의 표현 방법 선택
+- 핵심 역량 키워드 도출
+
+### 2. 면접 준비
+- 예상 질문에 대한 답변을 START 기법으로 정리
+- 여러 AI 모델의 피드백을 통해 답변 품질 개선
+
+### 3. 자기소개서 작성
+- 경험을 체계적으로 정리하고 핵심 역량 강조
+- 다양한 AI 모델의 관점으로 내용 검토
+
+## 🔍 성능 최적화
+
+### 💰 비용 효율성
+1. **Claude Haiku**: $1 + $5 = $6/1M 토큰 (가장 경제적)
+2. **HyperClovaX**: $2 + $10 = $12/1M 토큰 (한국어 특화)
+3. **Gemini Pro**: $3.5 + $10.5 = $14/1M 토큰 (고품질 대화)
+4. **Claude**: $3 + $15 = $18/1M 토큰 (고품질 응답)
+5. **Grok**: $3 + $15 = $18/1M 토큰 (창의적 응답)
+6. **ChatGPT**: $5 + $15 = $20/1M 토큰 (균형 잡힌 성능)
+
+### ⚡ 응답 속도
+- **ChatGPT**: 평균 5-8초 (가장 빠름)
+- **HyperClovaX**: 평균 7-10초 (한국어 특화)
+- **Claude Haiku**: 평균 8-12초 (경제적)
+- **Gemini Pro**: 평균 8-12초 (고품질)
+- **Claude**: 평균 10-15초 (고품질 응답)
+- **Grok**: 평균 10-15초 (창의적 응답)
+
+### 🇰🇷 한국어 품질
+1. **HyperClovaX**: 한국어 특화 모델, 자연스러운 표현
+2. **Claude**: 높은 품질의 한국어 응답
+3. **ChatGPT**: 안정적인 한국어 처리
+4. **Gemini Pro**: 우수한 한국어 대화 능력
+5. **Claude Haiku**: 간결하고 명확한 한국어
+6. **Grok**: 창의적이지만 가끔 부자연스러운 표현
+
+### 🎯 모델 선택 가이드
+- **비용 최적화**: Claude Haiku 또는 HyperClovaX
+- **속도 우선**: ChatGPT 또는 HyperClovaX
+- **한국어 품질**: HyperClovaX 또는 Claude
+- **창의성**: Grok 또는 Claude
+- **균형**: ChatGPT 또는 Gemini Pro
+
+## 🐛 문제 해결
+
+### API 키 관련
+```bash
+# API 키 설정 확인
+python -c "from src.config.settings import settings; settings.validate_api_keys()"
+```
+
+### 의존성 문제
+```bash
+# 의존성 재설치
+pip install -r requirements.txt --upgrade
+```
+
+## 🤝 기여하기
+
+1. 이 저장소를 포크하세요
+2. 새로운 브랜치를 생성하세요 (`git checkout -b feature/amazing-feature`)
+3. 변경사항을 커밋하세요 (`git commit -m 'Add amazing feature'`)
+4. 브랜치에 푸시하세요 (`git push origin feature/amazing-feature`)
+5. Pull Request를 생성하세요
+
+## 📝 라이센스
+
+이 프로젝트는 MIT 라이센스 하에 배포됩니다.
+
+## 📞 지원
+
+문제가 발생하면 Issues를 통해 문의해주세요.
+
+---
+
+**⭐ 이 프로젝트가 도움이 되었다면 Star를 눌러주세요!**

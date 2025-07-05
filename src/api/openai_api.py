@@ -55,18 +55,18 @@ class OpenAIAPI:
         prompt = self._build_question_prompt(user_response, context)
         return await self._make_request(prompt)
     
-    async def generate_report(self, conversation_history: List[Dict], prompt: str) -> APIResponse:
+    async def generate_report(self, user_response: str, context: str = "") -> APIResponse:
         """
-        대화 기록을 바탕으로 보고서를 생성합니다
+        사용자 응답을 바탕으로 보고서를 생성합니다
         
         Args:
-            conversation_history: 대화 기록 리스트
-            prompt: 보고서 생성 프롬프트
+            user_response: 사용자의 응답
+            context: 이전 대화 맥락
             
         Returns:
             APIResponse: 생성된 보고서와 메타데이터
         """
-        report_prompt = self._build_report_prompt(conversation_history, prompt)
+        report_prompt = self._build_report_prompt(user_response, context)
         return await self._make_request(report_prompt)
     
     def _build_question_prompt(self, user_response: str, context: str) -> str:
@@ -80,9 +80,9 @@ class OpenAIAPI:
             simple=False
         )
     
-    def _build_report_prompt(self, conversation_history: List[Dict], prompt: str) -> str:
+    def _build_report_prompt(self, user_response: str, context: str) -> str:
         """보고서 생성을 위한 프롬프트 구성"""
-        return prompt_loader.get_report_prompt(conversation_history, prompt)
+        return prompt_loader.get_report_prompt(user_response, context)
     
     async def _make_request(self, prompt: str) -> APIResponse:
         """실제 API 요청을 수행합니다"""

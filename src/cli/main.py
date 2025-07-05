@@ -1,8 +1,12 @@
 """
-CLI 메인 애플리케이션 - Claude API vs HyperClovaX API 성능 비교 도구
+CLI 메인 애플리케이션 - START 기법 특화 도구
 """
 import asyncio
 import os
+import sys
+import json
+import re
+import argparse
 from typing import List, Dict, Any, Optional
 from datetime import datetime
 
@@ -21,11 +25,11 @@ from ..metrics.evaluator import MetricsEvaluator
 from ..utils.config import settings
 
 
-class APIComparator:
-    """API 비교 클래스"""
+class STARTTester:
+    """START 기법 테스트 도구"""
     
     def __init__(self):
-        """비교 도구 초기화"""
+        """테스트 도구 초기화"""
         self.apis = {}
         self.evaluator = MetricsEvaluator()
         
@@ -50,453 +54,425 @@ class APIComparator:
             print("❌ 사용 가능한 API가 없습니다.")
         else:
             print(f"🎯 총 {len(self.apis)}개 AI 모델 사용 가능: {', '.join(self.apis.keys())}")
+        
+        # 고정 테스트 시나리오
+        self.question_scenario = {
+            "id": "start_method_01",
+            "name": "마케팅 인턴십 경험",
+            "user_response": "대학교 3학년 때 6개월간 마케팅 회사에서 인턴을 했습니다. 주로 SNS 마케팅을 담당했고, 회사 인스타그램 팔로워를 늘리는 일을 했습니다. 처음에는 어려웠지만 나중에는 좋은 결과를 얻었습니다.",
+            "context": "START 기법을 활용한 대학생 마케팅 인턴십 경험을 통한 성장 스토리"
+        }
+        
+        self.report_scenario = {
+            "id": "report_05",
+            "name": "팀 프로젝트 리더십 경험",
+            "user_response": "팀 프로젝트에서 리더를 맡았습니다. 5명의 팀원과 함께 3개월간 프로젝트를 진행했고, 중간에 갈등이 있었지만 결국 좋은 성과를 냈습니다. 이 경험을 통해 리더십을 배웠습니다.",
+            "context": "팀 프로젝트 리더십 경험을 통한 역량 개발"
+        }
+        
+        self.reports_dir = "reports"
+        if not os.path.exists(self.reports_dir):
+            os.makedirs(self.reports_dir)
     
-    async def test_question_generation(self, user_responses: List[str], contexts: Optional[List[str]] = None) -> Dict[str, Any]:
-        """질문 생성 테스트"""
-        if contexts is None:
-            contexts = [""] * len(user_responses)
+    def _get_start_scenarios(self):
+        """START 기법 시나리오 1개 반환 (start_method_01)"""
+        return [self.question_scenario]
+    
+    def _get_report_scenarios(self):
+        """보고서 생성 시나리오 1개 반환 (report_05)"""
+        return [self.report_scenario]
+    
+    async def test_start_questions(self):
+        """START 질문 생성 테스트"""
+        print("\n🤔 START 질문 생성 테스트를 시작합니다...\n")
         
+        scenarios = self._get_start_scenarios()
         results = {api_name.lower(): [] for api_name in self.apis.keys()}
-        failed_apis = set()  # 실패한 API 추적
         
-        for i, (user_response, context) in enumerate(zip(user_responses, contexts)):
-            test_id = f"question_test_{i+1}"
+        for i, scenario in enumerate(scenarios):
+            print(f"📝 시나리오 {i+1}: {scenario['name']}")
             
-            # 모든 사용 가능한 API 테스트
             for api_name, api_instance in self.apis.items():
-                # 이미 실패한 API는 스킵
-                if api_name in failed_apis:
-                    continue
-                    
                 try:
-                    result = await api_instance.generate_questions(user_response, context)
+                    # START 기법 질문 생성
+                    result = await api_instance.generate_questions(
+                        scenario['user_response'], 
+                        scenario['context']
+                    )
                     
                     if not result.error:
-                        quality_metrics = self.evaluator.evaluate_question_quality(
-                            result.content, user_response, context
-                        )
-                        performance_metrics = self.evaluator.calculate_performance_metrics(
-                            result.response_time, result.tokens_used, result.cost
-                        )
-                        
-                        self.evaluator.add_comparison_result(
-                            test_id, api_name, "question_generation",
-                            user_response, result.content,
-                            quality_metrics, performance_metrics
-                        )
-                        
                         results[api_name.lower()].append({
+                            "scenario": scenario['name'],
                             "content": result.content,
                             "response_time": result.response_time,
                             "tokens": result.tokens_used,
-                            "cost": result.cost,
-                            "quality_score": quality_metrics.overall_score
+                            "cost": result.cost
                         })
                     else:
-                        # API 오류 시 간결한 메시지
-                        error_msg = self._get_simplified_error(result.error)
-                        print(f"❌ {api_name}: {error_msg}")
-                        failed_apis.add(api_name)
+                        print(f"❌ {api_name}: API 오류 - {result.error}")
                         
                 except Exception as e:
-                    # 예외 발생 시 간결한 메시지
-                    error_msg = self._get_simplified_error(str(e))
-                    print(f"❌ {api_name}: {error_msg}")
-                    failed_apis.add(api_name)
+                    print(f"❌ {api_name}: 예외 발생 - {str(e)}")
         
+        self._print_question_results(results)
         return results
     
-    def _get_simplified_error(self, error_msg: str) -> str:
-        """오류 메시지를 간결하게 변환"""
-        error_str = str(error_msg).lower()
-        
-        if "quota" in error_str or "429" in error_str:
-            return "할당량 초과 (무료 티어 한도)"
-        elif "timeout" in error_str or "timed out" in error_str:
-            return "요청 타임아웃"
-        elif "401" in error_str or "unauthorized" in error_str:
-            return "API 키 인증 오류"
-        elif "404" in error_str or "not found" in error_str:
-            return "모델을 찾을 수 없음"
-        elif "connection" in error_str:
-            return "네트워크 연결 오류"
-        else:
-            # 긴 오류 메시지를 짧게 자르기
-            return error_str[:100] + "..." if len(error_str) > 100 else error_str
-    
-    async def test_report_generation(self, report_scenarios: List[Any]) -> Dict[str, Any]:
+    async def test_reports(self):
         """보고서 생성 테스트"""
+        print("\n📋 보고서 생성 테스트를 시작합니다...\n")
+        
+        scenarios = self._get_report_scenarios()
         results = {api_name.lower(): [] for api_name in self.apis.keys()}
         
-        for i, scenario in enumerate(report_scenarios):
-            test_id = f"report_test_{i+1}"
+        for i, scenario in enumerate(scenarios):
+            print(f"📄 시나리오 {i+1}: {scenario['name']}")
             
-            # 모든 사용 가능한 API 테스트
             for api_name, api_instance in self.apis.items():
                 try:
                     result = await api_instance.generate_report(
-                        scenario.conversation_history, scenario.prompt
+                        scenario['user_response'], 
+                        scenario['context']
                     )
                     
                     if not result.error:
-                        quality_metrics = self.evaluator.evaluate_report_quality(
-                            result.content, scenario.conversation_history, scenario.prompt
-                        )
-                        performance_metrics = self.evaluator.calculate_performance_metrics(
-                            result.response_time, result.tokens_used, result.cost, None
-                        )
-                        
-                        self.evaluator.add_comparison_result(
-                            test_id, api_name, "report_generation",
-                            scenario.prompt, result.content,
-                            quality_metrics, performance_metrics
-                        )
-                        
                         results[api_name.lower()].append({
+                            "scenario": scenario['name'],
                             "content": result.content,
                             "response_time": result.response_time,
                             "tokens": result.tokens_used,
-                            "cost": result.cost,
-                            "quality_score": quality_metrics.overall_score
+                            "cost": result.cost
                         })
                     else:
-                        print(f"❌ {api_name} API 오류 (테스트 {i+1}): {result.error}")
+                        print(f"❌ {api_name}: API 오류 - {result.error}")
                         
                 except Exception as e:
-                    print(f"❌ {api_name} API 예외 (테스트 {i+1}): {e}")
+                    print(f"❌ {api_name}: 예외 발생 - {str(e)}")
         
+        self._print_report_results(results)
         return results
     
-    def print_summary(self, question_results: Dict[str, Any], report_results: Dict[str, Any]):
-        """결과 요약 출력"""
-        print("\n=== 📊 AI 모델 성능 비교 결과 ===")
+    def _print_question_results(self, results: Dict[str, Any]):
+        """질문 생성 결과 출력 (단순 표 형식)"""
+        print("\n# 📊 START 질문 생성 결과\n")
         
-        # 질문 생성 결과
-        print("\n🤔 질문 생성 성능 비교:")
+        # 성능 테이블
+        print("## 🏆 모델별 성능 비교\n")
+        print("| 모델 | 평균 응답시간 (초) | 평균 비용 ($) | 평균 토큰 수 |")
+        print("|------|------------------|-------------|-------------|")
+        
         for api_name in self.apis.keys():
             api_key = api_name.lower()
-            if api_key in question_results and question_results[api_key]:
-                results = question_results[api_key]
-                avg_time = sum(r["response_time"] for r in results) / len(results)
-                avg_quality = sum(r["quality_score"] for r in results) / len(results)
-                avg_cost = sum(r["cost"] for r in results) / len(results)
-                print(f"  {api_name:12}: 응답시간 {avg_time:5.2f}초, 품질 {avg_quality:.2f}/5.0, 비용 ${avg_cost:.4f}")
+            if api_key in results and results[api_key]:
+                avg_time = sum(r["response_time"] for r in results[api_key]) / len(results[api_key])
+                avg_cost = sum(r["cost"] for r in results[api_key]) / len(results[api_key])
+                avg_tokens = sum(r["tokens"] for r in results[api_key]) / len(results[api_key])
+                print(f"| {api_name} | {avg_time:.2f} | ${avg_cost:.4f} | {avg_tokens:.0f} |")
         
-        # 보고서 생성 결과 (향후 구현)
-        if any(report_results.values()):
-            print("\n📋 보고서 생성 성능 비교:")
+        # 응답 내용 비교
+        print("\n## 🔍 모델별 응답 내용 비교\n")
+        scenarios = self._get_start_scenarios()
+        
+        for i, scenario in enumerate(scenarios):
+            print(f"### 시나리오 {i+1}: {scenario['name']}\n")
+            print("| 모델 | 생성된 질문 내용 |")
+            print("|------|---------------------|")
+            
             for api_name in self.apis.keys():
                 api_key = api_name.lower()
-                if api_key in report_results and report_results[api_key]:
-                    results = report_results[api_key]
-                    avg_time = sum(r["response_time"] for r in results) / len(results)
-                    avg_quality = sum(r["quality_score"] for r in results) / len(results)
-                    avg_cost = sum(r["cost"] for r in results) / len(results)
-                    print(f"  {api_name:12}: 응답시간 {avg_time:5.2f}초, 품질 {avg_quality:.2f}/5.0, 비용 ${avg_cost:.4f}")
+                if api_key in results and results[api_key] and len(results[api_key]) > i:
+                    content = self._clean_and_summarize_content(results[api_key][i]["content"])
+                    print(f"| {api_name} | {content} |")
+            print()
         
-        # 성능 랭킹 출력
-        self._print_performance_ranking(question_results)
+        # 마크다운 파일 저장
+        self._save_question_report(results)
     
-    def _print_performance_ranking(self, question_results: Dict[str, Any]):
-        """성능 순위 출력"""
-        if not question_results:
-            return
+    def _save_question_report(self, results: Dict[str, Any]):
+        """질문 생성 마크다운 보고서를 파일로 저장"""
+        from datetime import datetime
+        import os
         
-        rankings = []
+        # 저장 디렉토리 생성
+        os.makedirs("reports", exist_ok=True)
+        
+        # 타임스탬프 생성
+        timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
+        filename = f"reports/START_questions_{timestamp}.md"
+        
+        # 마크다운 내용 생성
+        markdown_content = self._generate_question_markdown_content(results)
+        
+        # 파일 저장
+        with open(filename, 'w', encoding='utf-8') as f:
+            f.write(markdown_content)
+        
+        print(f"📄 질문 생성 보고서가 저장되었습니다: {filename}")
+    
+    def _generate_question_markdown_content(self, results: Dict[str, Any]) -> str:
+        """질문 생성 마크다운 내용 생성 (단순 형식)"""
+        from datetime import datetime
+        
+        content = [
+            "# 📊 START 질문 생성 결과\n",
+            f"생성일시: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}\n\n",
+            "## 🏆 모델별 성능 비교\n",
+            "| 모델 | 평균 응답시간 (초) | 평균 비용 ($) | 평균 토큰 수 |",
+            "|------|------------------|-------------|-------------|"
+        ]
+        
+        # 성능 테이블
         for api_name in self.apis.keys():
             api_key = api_name.lower()
-            if api_key in question_results and question_results[api_key]:
-                results = question_results[api_key]
-                avg_time = sum(r["response_time"] for r in results) / len(results)
-                avg_quality = sum(r["quality_score"] for r in results) / len(results)
-                avg_cost = sum(r["cost"] for r in results) / len(results)
-                
-                # 종합 점수 계산 (품질 중심, 속도와 비용 고려)
-                composite_score = avg_quality * 0.6 + (5 - min(avg_time, 5)) * 0.2 + (1 - min(avg_cost, 1)) * 0.2
-                
-                rankings.append({
-                    "name": api_name,
-                    "quality": avg_quality,
-                    "speed": avg_time,
-                    "cost": avg_cost,
-                    "composite": composite_score
-                })
+            if api_key in results and results[api_key]:
+                avg_time = sum(r["response_time"] for r in results[api_key]) / len(results[api_key])
+                avg_cost = sum(r["cost"] for r in results[api_key]) / len(results[api_key])
+                avg_tokens = sum(r["tokens"] for r in results[api_key]) / len(results[api_key])
+                content.append(f"| {api_name} | {avg_time:.2f} | ${avg_cost:.4f} | {avg_tokens:.0f} |")
         
-        if rankings:
-            print("\n🏆 종합 성능 순위:")
-            rankings.sort(key=lambda x: x["composite"], reverse=True)
+        content.extend([
+            "\n## 🔍 모델별 응답 내용 비교\n"
+        ])
+        
+        # 응답 내용 비교
+        scenarios = self._get_start_scenarios()
+        for i, scenario in enumerate(scenarios):
+            content.extend([
+                f"### 시나리오 {i+1}: {scenario['name']}\n",
+                "| 모델 | 생성된 질문 내용 |",
+                "|------|---------------------|"
+            ])
             
-            for i, ranking in enumerate(rankings, 1):
-                medal = "🥇" if i == 1 else "🥈" if i == 2 else "🥉" if i == 3 else f"{i}위"
-                print(f"  {medal} {ranking['name']:12} (종합: {ranking['composite']:.2f}, 품질: {ranking['quality']:.2f}, 속도: {ranking['speed']:.2f}초, 비용: ${ranking['cost']:.4f})")
-    
-    def save_results(self, filename: Optional[str] = None):
-        """결과 저장"""
-        if not filename:
-            timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
-            filename = f"api_comparison_results_{timestamp}"
+            for api_name in self.apis.keys():
+                api_key = api_name.lower()
+                if api_key in results and results[api_key] and len(results[api_key]) > i:
+                    clean_content = self._clean_and_summarize_content(results[api_key][i]["content"])
+                    content.append(f"| {api_name} | {clean_content} |")
+            
+            content.append("")
         
-        # 결과 디렉토리 생성
-        os.makedirs(settings.results_dir, exist_ok=True)
+        return "\n".join(content)
+    
+    def _print_report_results(self, results: Dict[str, Any]):
+        """보고서 생성 결과 출력 (단순 표 형식)"""
+        print("\n# 📊 보고서 생성 결과\n")
         
-        json_file = os.path.join(settings.results_dir, f"{filename}.json")
-        self.evaluator.export_results(json_file, "json")
-
-
-def get_test_data_by_category(category: str = "all", limit: int = 3):
-    """카테고리별 테스트 데이터 반환"""
-    from ..tests.test_scenarios import TestScenarios
+        # 성능 테이블
+        print("## 🏆 모델별 성능 비교\n")
+        print("| 모델 | 평균 응답시간 (초) | 평균 비용 ($) | 평균 토큰 수 |")
+        print("|------|------------------|-------------|-------------|")
+        
+        for api_name in self.apis.keys():
+            api_key = api_name.lower()
+            if api_key in results and results[api_key]:
+                avg_time = sum(r["response_time"] for r in results[api_key]) / len(results[api_key])
+                avg_cost = sum(r["cost"] for r in results[api_key]) / len(results[api_key])
+                avg_tokens = sum(r["tokens"] for r in results[api_key]) / len(results[api_key])
+                print(f"| {api_name} | {avg_time:.2f} | ${avg_cost:.4f} | {avg_tokens:.0f} |")
+        
+        # 응답 내용 비교
+        print("\n## 🔍 모델별 응답 내용 비교\n")
+        scenarios = self._get_report_scenarios()
+        
+        for i, scenario in enumerate(scenarios):
+            print(f"### 시나리오 {i+1}: {scenario['name']}\n")
+            print("| 모델 | 생성된 보고서 내용 |")
+            print("|------|---------------------|")
+            
+            for api_name in self.apis.keys():
+                api_key = api_name.lower()
+                if api_key in results and results[api_key] and len(results[api_key]) > i:
+                    content = self._clean_and_summarize_content(results[api_key][i]["content"])
+                    print(f"| {api_name} | {content} |")
+            print()
+        
+        # 마크다운 파일 저장
+        self._save_markdown_report(results)
     
-    if category == "all":
-        scenarios = TestScenarios.get_question_generation_scenarios()
-    else:
-        scenarios = TestScenarios.get_scenarios_by_category(category)
+    def _save_markdown_report(self, results: Dict[str, Any]):
+        """마크다운 보고서를 파일로 저장"""
+        from datetime import datetime
+        import os
+        
+        # 저장 디렉토리 생성
+        os.makedirs("reports", exist_ok=True)
+        
+        # 타임스탬프 생성
+        timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
+        filename = f"reports/START_report_{timestamp}.md"
+        
+        # 마크다운 내용 생성
+        markdown_content = self._generate_markdown_content(results)
+        
+        # 파일 저장
+        with open(filename, 'w', encoding='utf-8') as f:
+            f.write(markdown_content)
+        
+        print(f"📄 보고서가 저장되었습니다: {filename}")
     
-    # 제한된 수만큼만 선택
-    selected_scenarios = scenarios[:limit] if scenarios else []
+    def _generate_markdown_content(self, results: Dict[str, Any]) -> str:
+        """마크다운 내용 생성 (단순 형식)"""
+        from datetime import datetime
+        
+        content = [
+            "# 📊 START 기법 보고서 생성 결과\n",
+            f"생성일시: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}\n\n",
+            "## 🏆 모델별 성능 비교\n",
+            "| 모델 | 평균 응답시간 (초) | 평균 비용 ($) | 평균 토큰 수 |",
+            "|------|------------------|-------------|-------------|"
+        ]
+        
+        # 성능 테이블
+        for api_name in self.apis.keys():
+            api_key = api_name.lower()
+            if api_key in results and results[api_key]:
+                avg_time = sum(r["response_time"] for r in results[api_key]) / len(results[api_key])
+                avg_cost = sum(r["cost"] for r in results[api_key]) / len(results[api_key])
+                avg_tokens = sum(r["tokens"] for r in results[api_key]) / len(results[api_key])
+                content.append(f"| {api_name} | {avg_time:.2f} | ${avg_cost:.4f} | {avg_tokens:.0f} |")
+        
+        content.extend([
+            "\n## 🔍 모델별 응답 내용 비교\n"
+        ])
+        
+        # 응답 내용 비교
+        scenarios = self._get_report_scenarios()
+        for i, scenario in enumerate(scenarios):
+            content.extend([
+                f"### 시나리오 {i+1}: {scenario['name']}\n",
+                "| 모델 | 생성된 보고서 내용 |",
+                "|------|---------------------|"
+            ])
+            
+            for api_name in self.apis.keys():
+                api_key = api_name.lower()
+                if api_key in results and results[api_key] and len(results[api_key]) > i:
+                    clean_content = self._clean_and_summarize_content(results[api_key][i]["content"])
+                    content.append(f"| {api_name} | {clean_content} |")
+            
+            content.append("")
+        
+        return "\n".join(content)
     
-    user_responses = [scenario.user_input for scenario in selected_scenarios]
-    contexts = [scenario.context for scenario in selected_scenarios]
-    names = [scenario.name for scenario in selected_scenarios]
-    
-    return user_responses, contexts, names
+    def _clean_and_summarize_content(self, content: str) -> str:
+        """JSON에서 내용 추출하여 읽기 쉽게 정리"""
+        import re
+        import json
+        
+        try:
+            # JSON 부분 추출
+            json_match = re.search(r'```json\s*\n(.*?)\n```', content, re.DOTALL)
+            if json_match:
+                json_str = json_match.group(1)
+                data = json.loads(json_str)
+                
+                # 질문 생성인지 보고서 생성인지 판단
+                if "S" in data and "꼬리질문" in data.get("S", {}):
+                    # 질문 생성 형태
+                    result = []
+                    stages = [('S', 'Situation'), ('T', 'Task'), ('A', 'Action'), ('R', 'Result'), ('T', 'Takeaway')]
+                    for stage, stage_name in stages:
+                        if stage in data:
+                            result.append(f"{stage} ({stage_name}): ")
+                            stage_data = data[stage]
+                            result.append(f"꼬리질문: {stage_data.get('꼬리질문', '')} ")
+                            result.append(f"실무예시: {stage_data.get('실무예시', '')} ")
+                            result.append(f"기업어필: {stage_data.get('기업어필', '')} ")
+                    return "".join(result)
+                
+                elif "START_분석" in data:
+                    # 보고서 생성 형태
+                    result = []
+                    
+                    # START 분석
+                    if "START_분석" in data:
+                        result.append("START 기법 분석 - ")
+                        start_data = data["START_분석"]
+                        stages = [('S', 'Situation'), ('T', 'Task'), ('A', 'Action'), ('R', 'Result'), ('T', 'Takeaway')]
+                        for stage, stage_name in stages:
+                            if stage in start_data:
+                                result.append(f"{stage} ({stage_name}): {start_data[stage]} ")
+                    
+                    # 핵심 역량
+                    if "핵심_역량" in data:
+                        result.append("핵심 역량 - ")
+                        comp_data = data["핵심_역량"]
+                        for comp_type in ["전문_역량", "소프트_스킬", "성장_잠재력"]:
+                            if comp_type in comp_data:
+                                comp_name = comp_type.replace("_", " ")
+                                result.append(f"{comp_name}: {comp_data[comp_type]} ")
+                    
+                    return "".join(result)
+            
+            # JSON이 없으면 마크다운 정리
+            content = re.sub(r'#+\s*', '', content)
+            content = re.sub(r'\*\*([^*]+)\*\*', r'\1', content)
+            content = re.sub(r'\*([^*]+)\*', r'\1', content)
+            content = re.sub(r'`([^`]+)`', r'\1', content)
+            content = re.sub(r'\n+', ' ', content)
+            content = re.sub(r'\s+', ' ', content)
+            return content.strip()
+            
+        except (json.JSONDecodeError, KeyError, AttributeError):
+            # JSON 파싱 실패시 원본 반환
+            content = re.sub(r'#+\s*', '', content)
+            content = re.sub(r'\*\*([^*]+)\*\*', r'\1', content)
+            content = re.sub(r'\*([^*]+)\*', r'\1', content)
+            content = re.sub(r'`([^`]+)`', r'\1', content)
+            content = re.sub(r'\n+', ' ', content)
+            content = re.sub(r'\s+', ' ', content)
+            return content.strip()
 
 
-def get_available_categories():
-    """사용 가능한 카테고리 목록 반환"""
-    from ..tests.test_scenarios import TestScenarios
-    scenarios = TestScenarios.get_question_generation_scenarios()
-    categories = list(set(scenario.category for scenario in scenarios))
-    return sorted(categories)
-
-
-def get_sample_test_data():
-    """기본 샘플 테스트 데이터 반환 (하위 호환성)"""
-    user_responses, contexts, _ = get_test_data_by_category("job_preparation", 3)
-    return user_responses, contexts
-
-
-async def run_comparison_test(category: str = "all", count: int = 3):
-    """비교 테스트 실행"""
-    print("🚀 API 성능 비교 테스트를 시작합니다...\n")
+async def run_start_questions():
+    """START 질문 생성 테스트 실행"""
+    print("🚀 START 질문 생성 테스트를 시작합니다...")
     
     # 설정 검증
     if not settings.validate_api_keys():
         print("❌ API 키 설정을 확인해주세요.")
         return
     
-    # 비교 도구 초기화
-    comparator = APIComparator()
+    tester = STARTTester()
+    await tester.test_start_questions()
     
-    # 테스트 데이터 준비
-    user_responses, contexts, names = get_test_data_by_category(category, count)
-    
-    if not user_responses:
-        print(f"❌ '{category}' 카테고리에 해당하는 테스트 시나리오가 없습니다.")
-        return
-    
-    print(f"📝 질문 생성 테스트를 실행합니다... (카테고리: {category}, 시나리오 수: {len(user_responses)})")
-    
-    # 각 시나리오 이름 출력
-    for i, name in enumerate(names, 1):
-        print(f"  {i}. {name}")
-    print()
-    
-    question_results = await comparator.test_question_generation(user_responses, contexts)
-    
-    print("\n📊 결과를 분석합니다...")
-    empty_report_results = {api_name.lower(): [] for api_name in comparator.apis.keys()}
-    comparator.print_summary(question_results, empty_report_results)
-    
-    print("\n💾 결과를 저장합니다...")
-    comparator.save_results()
-    
-    print("\n✅ 모든 테스트가 완료되었습니다!")
+    print("\n✅ START 질문 생성 테스트가 완료되었습니다!")
 
 
-async def run_report_test(category: str = "start_technique_report", count: int = 1):
+async def run_reports():
     """보고서 생성 테스트 실행"""
-    print("📋 보고서 생성 테스트를 시작합니다...\n")
+    print("🚀 보고서 생성 테스트를 시작합니다...")
     
     # 설정 검증
     if not settings.validate_api_keys():
         print("❌ API 키 설정을 확인해주세요.")
         return
     
-    # 비교 도구 초기화
-    comparator = APIComparator()
+    tester = STARTTester()
+    await tester.test_reports()
     
-    # 보고서 테스트 시나리오 가져오기
-    from ..tests.test_scenarios import TestScenarios
-    all_report_scenarios = TestScenarios.get_report_generation_scenarios()
-    
-    # 카테고리별 필터링
-    if category != "all":
-        report_scenarios = [s for s in all_report_scenarios if s.category == category]
-    else:
-        report_scenarios = all_report_scenarios
-    
-    # 개수 제한
-    report_scenarios = report_scenarios[:count]
-    
-    if not report_scenarios:
-        print(f"❌ '{category}' 카테고리에 해당하는 보고서 시나리오가 없습니다.")
-        return
-    
-    print(f"📝 보고서 생성 테스트를 실행합니다... (카테고리: {category}, 시나리오 수: {len(report_scenarios)})")
-    
-    # 각 시나리오 이름 출력
-    for i, scenario in enumerate(report_scenarios, 1):
-        print(f"  {i}. {scenario.name}")
-    print()
-    
-    # 보고서 테스트 실행 - 개선된 예외처리 적용
-    report_results = {}
-    for api_name in comparator.apis.keys():
-        report_results[api_name.lower()] = []
-    
-    failed_apis = set()  # 실패한 API 추적
-    
-    for i, scenario in enumerate(report_scenarios):
-        print(f"📋 시나리오 {i+1}: {scenario.name}")
-        test_id = f"report_test_{i+1}"
-        
-        # 각 API로 보고서 생성
-        for api_name, api_instance in comparator.apis.items():
-            # 이미 실패한 API는 스킵
-            if api_name in failed_apis:
-                continue
-                
-            try:
-                # conversation_history를 하나의 텍스트로 합치기
-                conversation_text = ""
-                for msg in scenario.conversation_history:
-                    role = "사용자" if msg["role"] == "user" else "AI"
-                    conversation_text += f"{role}: {msg['content']}\n"
-                
-                # 보고서 생성 요청
-                result = await api_instance.generate_report(
-                    scenario.conversation_history, scenario.prompt
-                )
-                
-                if not result.error:
-                    quality_metrics = comparator.evaluator.evaluate_report_quality(
-                        result.content, scenario.conversation_history, scenario.prompt
-                    )
-                    performance_metrics = comparator.evaluator.calculate_performance_metrics(
-                        result.response_time, result.tokens_used, result.cost, None
-                    )
-                    
-                    # 결과를 evaluator에 제대로 저장
-                    comparator.evaluator.add_comparison_result(
-                        test_id, api_name, "report_generation",
-                        conversation_text, result.content,
-                        quality_metrics, performance_metrics
-                    )
-                    
-                    report_results[api_name.lower()].append({
-                        "content": result.content,
-                        "response_time": result.response_time,
-                        "tokens": result.tokens_used,
-                        "cost": result.cost,
-                        "quality_score": quality_metrics.overall_score
-                    })
-                else:
-                    # API 오류 시 간결한 메시지
-                    error_msg = comparator._get_simplified_error(result.error)
-                    print(f"❌ {api_name}: {error_msg}")
-                    failed_apis.add(api_name)
-                    
-            except Exception as e:
-                # 예외 발생 시 간결한 메시지
-                error_msg = comparator._get_simplified_error(str(e))
-                print(f"❌ {api_name}: {error_msg}")
-                failed_apis.add(api_name)
-    
-    print("\n📊 결과를 분석합니다...")
-    empty_question_results = {api_name.lower(): [] for api_name in comparator.apis.keys()}
-    comparator.print_summary(empty_question_results, report_results)
-    
-    print("\n💾 결과를 저장합니다...")
-    comparator.save_results()
-    
-    print("\n✅ 모든 보고서 테스트가 완료되었습니다!")
+    print("\n✅ 보고서 생성 테스트가 완료되었습니다!")
 
 
 def main():
     """메인 함수"""
     if not click:
         print("❌ click 패키지가 설치되지 않았습니다. pip install click")
-        print("🔄 기본 테스트를 실행합니다...")
-        asyncio.run(run_comparison_test())
         return
     
     @click.group()
     def cli():
-        """Claude API vs HyperClovaX API 성능 비교 도구"""
+        """START 기법 특화 테스트 도구"""
         pass
     
     @cli.command()
-    @click.option('--category', '-c', default='all', help='테스트할 시나리오 카테고리')
-    @click.option('--count', '-n', default=3, help='실행할 시나리오 개수')
-    def test(category, count):
-        """API 성능 비교 테스트 실행"""
-        asyncio.run(run_comparison_test(category, count))
+    def questions():
+        """START 질문 생성 테스트"""
+        asyncio.run(run_start_questions())
     
     @cli.command()
-    @click.option('--category', '-c', default='start_technique_report', help='보고서 테스트 카테고리')
-    @click.option('--count', '-n', default=1, help='실행할 시나리오 개수')
-    def report(category, count):
-        """보고서 생성 테스트 실행"""
-        asyncio.run(run_report_test(category, count))
-    
-    @cli.command()
-    def categories():
-        """사용 가능한 테스트 시나리오 카테고리 목록"""
-        print("📋 사용 가능한 테스트 카테고리:")
-        categories = get_available_categories()
-        for i, cat in enumerate(categories, 1):
-            print(f"  {i}. {cat}")
-        
-        print("\n🎯 카테고리별 시나리오 개수:")
-        from ..tests.test_scenarios import TestScenarios
-        for cat in categories:
-            scenarios = TestScenarios.get_scenarios_by_category(cat)
-            print(f"  {cat}: {len(scenarios)}개")
-        
-        print("\n💡 사용 예시:")
-        print("  python main.py test --category job_preparation --count 5")
-        print("  python main.py test -c learning -n 2")
-        print("  python main.py test --category all --count 10")
-    
-    @cli.command()
-    def scenarios():
-        """모든 테스트 시나리오 목록"""
-        from ..tests.test_scenarios import TestScenarios
-        all_scenarios = TestScenarios.get_question_generation_scenarios()
-        
-        print(f"📝 전체 테스트 시나리오 ({len(all_scenarios)}개):")
-        
-        categories = get_available_categories()
-        for category in categories:
-            cat_scenarios = TestScenarios.get_scenarios_by_category(category)
-            print(f"\n🏷️ {category.upper()} ({len(cat_scenarios)}개):")
-            for i, scenario in enumerate(cat_scenarios, 1):
-                print(f"  {i}. {scenario.name}")
-                print(f"     📄 {scenario.user_input[:50]}...")
-                print(f"     🎯 {scenario.context}")
-    
-    @cli.command()
-    def info():
-        """시스템 정보 및 설정 확인"""
-        print("🔧 시스템 정보")
-        print(f"- 테스트 언어: {settings.test_language}")
-        print(f"- 최대 재시도: {settings.max_retries}")
-        print(f"- 요청 타임아웃: {settings.request_timeout}초")
-        print(f"- 결과 저장 경로: {settings.results_dir}")
-        
-        # API 키 검증 (validate_api_keys에서 출력)
-        settings.validate_api_keys()
+    def reports():
+        """보고서 생성 테스트"""
+        asyncio.run(run_reports())
     
     cli()
 
