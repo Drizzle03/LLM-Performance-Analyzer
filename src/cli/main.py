@@ -12,6 +12,7 @@ except ImportError:
     click = None
 
 from ..api.claude_api import ClaudeAPI
+from ..api.claude_haiku_api import ClaudeHaikuAPI
 from ..api.hyperclova_api import HyperClovaAPI
 from ..api.openai_api import OpenAIAPI
 from ..api.gemini_api import GeminiAPI
@@ -31,6 +32,7 @@ class APIComparator:
         # 모든 API 초기화 시도
         api_classes = {
             "Claude": ClaudeAPI,
+            "Claude Haiku": ClaudeHaikuAPI,
             "ChatGPT": OpenAIAPI,
             "Gemini": GeminiAPI,
             "Grok": GrokAPI,

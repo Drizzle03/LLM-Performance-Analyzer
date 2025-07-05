@@ -147,6 +147,58 @@ python main.py categories
 - **목표**: "합격할 만한 자기소개서" 작성 지원
 
 이 규칙들을 따라 개발하면 안정적이고 효율적인 AI API 성능 비교가 가능합니다.
+
+## 📋 프롬프트 관리 시스템 규칙 (신규 추가)
+
+### 프롬프트 파일 관리 규칙
+- **위치**: 모든 프롬프트는 `src/prompts/` 폴더에 `.txt` 파일로 저장
+- **명명 규칙**: `{기능}_{옵션}.txt` (예: `question_generation_start.txt`)
+- **인코딩**: UTF-8 필수
+
+### 프롬프트 파일 구조
+```
+src/prompts/
+├── question_generation.txt         # 일반 질문 생성
+├── question_generation_simple.txt  # 간단한 질문 생성 (Haiku용)
+├── question_generation_start.txt   # START 기법 질문 생성
+├── question_generation_start_simple.txt # 간단한 START 질문
+└── report_generation.txt           # 보고서 생성
+```
+
+### 변수 치환 규칙
+- `{user_response}`: 사용자 응답 내용
+- `{context}`: 이전 대화 맥락  
+- `{conversation_text}`: 전체 대화 기록
+- `{prompt}`: 보고서 생성 요구사항
+- `{language}`: 언어 설정 (자동 추가)
+
+### 프롬프트 로더 사용법
+```python
+# ✅ 올바른 사용법
+from src.utils.prompt_loader import prompt_loader
+
+prompt = prompt_loader.get_question_prompt(
+    user_response=user_input,
+    context=context,
+    use_start=True,  # START 기법 사용 여부
+    simple=False     # 간단한 프롬프트 사용 여부 (Haiku용)
+)
+
+# ❌ 직접 하드코딩 금지
+prompt = f"질문을 생성해주세요: {user_input}"
+```
+
+### 프롬프트 수정 가이드
+1. **프롬프트 파일 직접 수정**
+2. **캐시 클리어**: `prompt_loader.clear_cache()`
+3. **테스트 실행으로 검증**
+
+### 장점
+- **중앙 관리**: 모든 프롬프트를 한 곳에서 관리
+- **버전 관리**: Git을 통한 프롬프트 변경사항 추적
+- **모델별 최적화**: 각 AI 모델 특성에 맞는 프롬프트 제공  
+- **유지보수성**: 코드와 프롬프트 분리로 수정 편의성 증대
+- **재사용성**: 공통 프롬프트 템플릿 활용
 description:
 globs:
 alwaysApply: false

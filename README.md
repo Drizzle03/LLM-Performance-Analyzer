@@ -6,7 +6,7 @@
 
 ## 📋 프로젝트 개요
 
-**5개 주요 AI 모델의 성능을 종합 비교**하는 전문 도구입니다. 질문 생성과 보고서 작성 능력을 **품질, 속도, 비용** 측면에서 정량적으로 평가합니다.
+**6개 주요 AI 모델의 성능을 종합 비교**하는 전문 도구입니다. 질문 생성과 보고서 작성 능력을 **품질, 속도, 비용** 측면에서 정량적으로 평가합니다.
 
 ### 🎯 특화 기능
 - **START 기법 기반 보고서 생성**: 취업준비생을 위한 자기소개서 작성 지원
@@ -18,6 +18,7 @@
 | 모델 | 제공사 | 모델명 | 입력 토큰 가격 | 출력 토큰 가격 | 특징 |
 |------|--------|--------|----------------|----------------|------|
 | **Claude** | Anthropic | `claude-3-5-sonnet-20241022` | $3.0/1M | $15.0/1M | 균형잡힌 성능, 빠른 속도 |
+| **Claude Haiku** | Anthropic | `claude-3-5-haiku-20241022` | **$1.0/1M** | **$5.0/1M** | **초고속**, **경제적**, 간결한 답변 |
 | **ChatGPT** | OpenAI | `gpt-4o` | $5.0/1M | $15.0/1M | 실용적 접근, 구체적 수치 |
 | **Gemini** | Google | `gemini-1.5-pro` | $1.25/1M | $5.0/1M | 무료 티어 제공 |
 | **Grok** | xAI | `grok-3` | $3.0/1M | $3.0/1M | 상세한 전문 분석 |
@@ -39,7 +40,8 @@
 
 - **🎯 실제 자기소개서 작성**: ChatGPT (실용적, 바로 사용 가능)
 - **📚 면접 준비용 심화 자료**: Grok (가장 상세한 분석)
-- **⚡ 빠른 초안 작성**: HyperClovaX (압도적 가성비)
+- **⚡ 초고속 대량 처리**: Claude Haiku (가장 빠르고 경제적)
+- **💰 경제적 초안 작성**: HyperClovaX (한국어 특화 + 가성비)
 - **⚖️ 균형잡힌 활용**: Claude (빠른 속도 + 적당한 분량)
 
 ## 🛠️ 설치 및 설정
@@ -113,12 +115,13 @@ python main.py info
 
 🔑 API 키 상태 확인:
   ✅ Claude API: 설정됨
+  ✅ Claude Haiku API: 설정됨
   ✅ OpenAI API (ChatGPT): 설정됨
   ✅ Google AI (Gemini): 설정됨
   ✅ xAI (Grok): 설정됨
   ✅ HyperClovaX API: 설정됨
 
-🎯 사용 가능한 API: claude, openai, gemini, grok, hyperclova (5개)
+🎯 사용 가능한 API: claude, claude-haiku, openai, gemini, grok, hyperclova (6개)
 ```
 
 ## 🚀 사용법
@@ -274,12 +277,17 @@ export MAX_RETRIES=5  # 재시도 증가
 ### 💸 비용 최적화
 
 ```bash
-# 테스트용 경량 모델 사용
-export OPENAI_MODEL=gpt-4o-mini  # $0.15/$0.6 per 1M tokens
+# 가장 경제적인 모델 사용
+# Claude Haiku: $1.0/$5.0 per 1M tokens (가장 빠름)
+# GPT-4o Mini: $0.15/$0.6 per 1M tokens (가장 저렴)
+export OPENAI_MODEL=gpt-4o-mini
 export GEMINI_MODEL=gemini-1.5-flash  # $0.075/$0.3 per 1M tokens
 
-# HyperClovaX 우선 사용 (한국어 + 저비용)
+# 대량 처리시 Claude Haiku 추천 (속도 + 경제성)
 python main.py test --category start_technique_report
+
+# 한국어 특화: HyperClovaX 우선 사용
+python main.py test --category start_technique_report --count 5
 ```
 
 ### ⚡ 성능 최적화
@@ -323,4 +331,60 @@ python main.py test --category start_technique_report
 
 ---
 
+<<<<<<< HEAD
 > 💡 **팁**: 각 AI 모델의 특성을 이해하고 용도에 맞게 선택하면 최적의 결과를 얻을 수 있습니다! 
+=======
+> 💡 **팁**: 각 AI 모델의 특성을 이해하고 용도에 맞게 선택하면 최적의 결과를 얻을 수 있습니다!
+
+---
+
+## 🎯 프롬프트 관리 시스템 (신규)
+
+### 📁 프롬프트 템플릿 구조
+
+프롬프트를 외부 파일로 분리하여 관리의 편의성과 유지보수성을 향상시켰습니다.
+
+```
+src/prompts/
+├── question_generation.txt         # 일반 질문 생성 프롬프트
+├── question_generation_simple.txt  # 간단한 질문 생성 (Haiku용)
+├── question_generation_start.txt   # START 기법 질문 생성
+├── question_generation_start_simple.txt # 간단한 START 질문
+└── report_generation.txt           # 보고서 생성 프롬프트
+```
+
+### 🔧 프롬프트 로더 기능
+
+**주요 기능:**
+- 📋 프롬프트 파일 자동 로드 및 캐시
+- 🔄 변수 치환 (user_response, context, language 등)
+- 🎯 모델별 최적화된 프롬프트 선택
+- 🚀 성능 향상을 위한 메모리 캐시
+
+**사용법:**
+```python
+from src.utils.prompt_loader import prompt_loader
+
+# 일반 질문 생성
+prompt = prompt_loader.get_question_prompt(
+    user_response="마케팅 인턴 경험",
+    context="",
+    use_start=False,
+    simple=False
+)
+
+# START 기법 보고서 생성
+report = prompt_loader.get_report_prompt(
+    conversation_history=history,
+    prompt="자기소개서 작성"
+)
+```
+
+### ✨ 개선사항
+
+1. **프롬프트 중앙 관리**: 모든 프롬프트를 한 곳에서 관리
+2. **버전 관리 용이**: 프롬프트 변경사항 추적 가능
+3. **모델별 최적화**: 각 AI 모델 특성에 맞는 프롬프트 제공
+4. **유지보수성 향상**: 코드와 프롬프트 분리로 수정 편의성 증대
+5. **재사용성 극대화**: 공통 프롬프트 템플릿 활용 
+>>>>>>> ab0c359 (feat: 프롬프트 관리 시스템 구축 완료)
